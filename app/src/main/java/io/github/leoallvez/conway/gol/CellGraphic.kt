@@ -5,26 +5,23 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 
-class CellGraphic(private val columnWidth: Int, private val rowHeight: Int) {
+class CellGraphic(private val width: Int, private val height: Int) {
 
-    val rectangle: Rect = Rect()
-    val paint: Paint = Paint()
+    private val rectangle: Rect = Rect()
+    private val paint: Paint = Paint()
 
-    fun draw(col: Int, row: Int, cellIsAlive: Boolean, canvas: Canvas) {
+    fun draw(cell: Cell, canvas: Canvas) {
         rectangle.set(
-            getRectangleLeft(col),
-            getRectangleTop(row),
-            getRectangleRight(col),
-            getRectangleBottom(row)
+            getRectangleLeft(cell.row),
+            getRectangleTop(cell.col),
+            getRectangleRight(cell.row),
+            getRectangleBottom(cell.col)
         )
-        //paint.style = Paint.Style.STROKE;
-        //paint.color = getCellColor(cellIsAlive)
 
         // fill
         paint.style = Paint.Style.FILL
-        //paint.setColor(Color.MAGENTA);
-        paint.color = getCellColor(cellIsAlive)
-        canvas.drawRect(rectangle, paint);
+        paint.color = getCellColor(cell.isAlive)
+        canvas.drawRect(rectangle, paint)
 
         // border
         paint.style = Paint.Style.STROKE
@@ -33,24 +30,24 @@ class CellGraphic(private val columnWidth: Int, private val rowHeight: Int) {
     }
 
     private fun getCellColor(cellIsAlive: Boolean): Int = if (cellIsAlive) {
-        Color.WHITE
+        Color.GRAY
     } else {
         Color.BLACK
     }
 
-    private fun getRectangleLeft(col: Int): Int {
-        return col * columnWidth - 1
+    private fun getRectangleLeft(row: Int): Int {
+        return row * width - 1
     }
 
-    private fun getRectangleTop(row: Int): Int {
-        return row * rowHeight - 1
+    private fun getRectangleTop(col: Int): Int {
+        return col * height - 1
     }
 
-    private fun getRectangleRight(col: Int): Int {
-        return col * columnWidth + columnWidth - 1
+    private fun getRectangleRight(row: Int): Int {
+        return row * width + width - 1
     }
 
-    private fun getRectangleBottom(row: Int): Int {
-        return row * rowHeight + rowHeight - 1
+    private fun getRectangleBottom(col: Int): Int {
+        return col * height + height - 1
     }
 }

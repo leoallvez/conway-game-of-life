@@ -5,17 +5,16 @@ import kotlin.random.Random
 
 class Universe(private val width: Int, private val height: Int) {
 
-    private val cells: Array<Array<Cell>> by lazy {
+    private val futureLiveCells: MutableList<Cell> = ArrayList()
+    private val futureDeadCells: MutableList<Cell> = ArrayList()
+
+    val cells: Array<Array<Cell>> by lazy {
         Array(width) { row ->
             Array(height) { col ->
                 val isAlive = Random.Default.nextBoolean()
-                Cell(col, row, isAlive)
+                Cell(row, col, isAlive)
             }
         }
-    }
-
-    fun getCell(col: Int, row: Int): Cell {
-        return cells[col][row]
     }
 
     private fun countNeighboursAlive(row: Int, col: Int): Int {
@@ -36,8 +35,9 @@ class Universe(private val width: Int, private val height: Int) {
     }
 
     fun nextGeneration() {
-        val liveCells: MutableList<Cell> = ArrayList()
-        val deadCells: MutableList<Cell> = ArrayList()
+        futureLiveCells.clear()
+        futureDeadCells.clear()
+
         for (row in 0 until width) {
             for (col in 0 until height) {
                 val cell = cells[row][col]
@@ -45,23 +45,23 @@ class Universe(private val width: Int, private val height: Int) {
 
                 // rule 1 & rule 3
                 if (cell.isAlive && (nbNeighbours < 2 || nbNeighbours > 3)) {
-                    deadCells.add(cell)
+                    futureDeadCells.add(cell)
                 }
 
                 // rule 2 & rule 4
                 if (cell.isAlive && (nbNeighbours == 3 || nbNeighbours == 2) || !cell.isAlive && nbNeighbours == 3
                 ) {
-                    liveCells.add(cell)
+                    futureLiveCells.add(cell)
                 }
             }
         }
 
         // update future live and dead cells
-        for (cell in liveCells) {
+        for (cell in futureLiveCells) {
             cell.isAlive = true
         }
 
-        for (cell in deadCells) {
+        for (cell in futureDeadCells) {
             cell.isAlive = false
         }
     }

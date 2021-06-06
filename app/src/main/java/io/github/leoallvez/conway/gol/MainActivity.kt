@@ -15,6 +15,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        gameOfLifeView.stop()
         gameOfLifeView.start()
     }
 

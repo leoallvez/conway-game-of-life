@@ -2,6 +2,7 @@ package io.github.leoallvez.conway.gol
 
 import android.R.attr.columnWidth
 import android.R.attr.rowHeight
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
@@ -9,8 +10,6 @@ import android.util.DisplayMetrics
 import android.util.Log
 import android.view.MotionEvent
 import android.view.SurfaceView
-import kotlin.random.Random
-
 
 class GameOfLifeView(context: Context?, attrs: AttributeSet?) :
     SurfaceView(context, attrs),
@@ -23,8 +22,8 @@ class GameOfLifeView(context: Context?, attrs: AttributeSet?) :
     private var isRunning = false
     //TODO: find a new name for CellGraphic;
     private lateinit var cellGraphic: CellGraphic
-    private var columns = 1
-    private var rows = 1
+    private var screenWidth = 1
+    private var screenHeight = 1
 
     private lateinit var universe: Universe
 
@@ -39,10 +38,12 @@ class GameOfLifeView(context: Context?, attrs: AttributeSet?) :
             } catch (e: InterruptedException) {
                 Log.e("error:", "${e.printStackTrace()}")
             }
-            val canvas: Canvas = holder.lockCanvas()
-            universe.nextGeneration()
-            drawCells(canvas)
-            holder.unlockCanvasAndPost(canvas)
+            val canvas: Canvas? = holder.lockCanvas()
+            canvas?.let {
+                universe.nextGeneration()
+                drawCells(canvas)
+                holder.unlockCanvasAndPost(canvas)
+            }
         }
     }
 
@@ -66,9 +67,9 @@ class GameOfLifeView(context: Context?, attrs: AttributeSet?) :
     private fun initWorld() {
         val metrics = getDisplayMetrics()
         calculateColumnsRowsNumber(metrics)
-        val (columnWidth, rowHeight) = calculateColumnWidthRowHeight(metrics)
-        cellGraphic = CellGraphic(columnWidth, rowHeight)
-        universe = Universe(columns, rows)
+        val (width, height) = getWidthAndHeight(metrics)
+        cellGraphic = CellGraphic(width, height)
+        universe = Universe(screenWidth, screenHeight)
     }
 
     private fun getDisplayMetrics(): DisplayMetrics {
@@ -80,23 +81,21 @@ class GameOfLifeView(context: Context?, attrs: AttributeSet?) :
     }
 
     private fun calculateColumnsRowsNumber(metrics: DisplayMetrics) {
-        columns = metrics.widthPixels / DEFAULT_SIZE
-        rows = metrics.heightPixels/ DEFAULT_SIZE
+        screenWidth = metrics.widthPixels / DEFAULT_SIZE
+        screenHeight = metrics.heightPixels/ DEFAULT_SIZE
     }
 
-    private fun calculateColumnWidthRowHeight(metrics: DisplayMetrics): Pair<Int, Int> {
-        val columnWidth = metrics.widthPixels / columns
-        val rowHeight = metrics.heightPixels/ rows
-        return Pair(columnWidth, rowHeight)
+    private fun getWidthAndHeight(metrics: DisplayMetrics): Pair<Int, Int> {
+        val width = metrics.widthPixels / screenWidth
+        val height = metrics.heightPixels/ screenHeight
+        return Pair(width, height)
     }
 
     private fun drawCells(canvas: Canvas) {
-        for (col in 0 until columns) {
-            for (row in 0 until rows) {
-                val cellIsAlive = universe.getCell(col, row).isAlive
-                //val cellIsAlive = (Random.nextInt(0, 10) % 2 == 0)
-                cellGraphic.draw(col, row, cellIsAlive, canvas)
-                //canvas.drawRect(cellGraphic.rectangle, cellGraphic.paint)
+        for (row in 0 until screenWidth) {
+            for (col in 0 until screenHeight) {
+                val cell = universe.cells[row][col]
+                cellGraphic.draw(cell, canvas)
             }
         }
     }
@@ -108,7 +107,7 @@ class GameOfLifeView(context: Context?, attrs: AttributeSet?) :
             val i = (event.x / columnWidth).toInt()
             val j = (event.y / rowHeight).toInt()
             // we get the cell associated to these positions
-            val cell: Cell = universe.getCell(i, j)
+            val cell: Cell = universe.cells[i][j]
             // we call the invert method of the cell got to change its state
             cell.isAlive = true
             //invalidate()
