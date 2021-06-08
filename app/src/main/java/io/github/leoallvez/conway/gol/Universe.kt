@@ -5,13 +5,14 @@ import kotlin.random.Random
 
 class Universe(private val width: Int, private val height: Int) {
 
-    private val nextLiveCells: MutableList<Cell> = ArrayList()
-    private val nextDeadCells: MutableList<Cell> = ArrayList()
+    var currentCells = createCells(true)
 
-    val currentCells: Array<Array<Cell>> by lazy {
-        Array(width) { row ->
+    private lateinit var nextCells: Array<Array<Cell>>
+
+    private fun createCells(randomIsLive: Boolean): Array<Array<Cell>> {
+        return Array(width) { row ->
             Array(height) { col ->
-                val isAlive = Random.Default.nextBoolean()
+                val isAlive = if(randomIsLive) Random.Default.nextBoolean() else false
                 Cell(row, col, isAlive)
             }
         }
@@ -35,34 +36,35 @@ class Universe(private val width: Int, private val height: Int) {
     }
 
     fun nextGeneration() {
-        nextLiveCells.clear()
-        nextDeadCells.clear()
+
+        nextCells = currentCells.map { it.clone().clone() }.toTypedArray()
 
         for (row in 0 until width) {
             for (col in 0 until height) {
-                val cell: Cell = currentCells[row][col]
-                val cellIsAlive = cell.isAlive
-                val livingNeighbors = countNeighboursAlive(cell.row, cell.col)
+
+                val currCell: Cell = currentCells[row][col]
+                val nextCell: Cell = startNextCell(currCell)
+
+                val livingNeighbors = countNeighboursAlive(row, col)
 
                 // rule 1 & rule 2
-                if (cellIsAlive && lessThanTwoOrMoreThanThree(livingNeighbors)) {
-                    nextDeadCells.add(cell)
+                if (currCell.isAlive && lessThanTwoOrMoreThanThree(livingNeighbors)) {
+                    nextCell.die()
                 }
 
                 // rule 2 & rule 4
-                if (cellIsAlive && threeOrTwo(livingNeighbors) || !cellIsAlive && livingNeighbors == 3) {
-                    nextLiveCells.add(cell)
+                if (currCell.isAlive && threeOrTwo(livingNeighbors) || !currCell.isAlive && livingNeighbors == 3) {
+                    nextCell.reborn()
                 }
             }
         }
+        currentCells = nextCells
+    }
 
-        for (cell in nextLiveCells) {
-            cell.isAlive = true
-        }
-
-        for (cell in nextDeadCells) {
-            cell.isAlive = false
-        }
+    private fun startNextCell(currCell: Cell): Cell {
+        val nextCell: Cell = currCell.copy()
+        nextCells[currCell.row][currCell.col] = nextCell
+        return nextCell
     }
 
     private fun lessThanTwoOrMoreThanThree(livingNeighbors: Int): Boolean {
