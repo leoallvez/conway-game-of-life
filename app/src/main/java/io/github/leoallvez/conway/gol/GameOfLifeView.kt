@@ -94,7 +94,7 @@ class GameOfLifeView(context: Context?, attrs: AttributeSet?) :
     private fun drawCells(canvas: Canvas) {
         for (row in 0 until screenWidth) {
             for (col in 0 until screenHeight) {
-                val cell = universe.cells[row][col]
+                val cell = universe.currentCells[row][col]
                 cellGraphic.draw(cell, canvas)
             }
         }
@@ -107,7 +107,7 @@ class GameOfLifeView(context: Context?, attrs: AttributeSet?) :
             val i = (event.x / columnWidth).toInt()
             val j = (event.y / rowHeight).toInt()
             // we get the cell associated to these positions
-            val cell: Cell = universe.cells[i][j]
+            val cell: Cell = universe.currentCells[i][j]
             // we call the invert method of the cell got to change its state
             cell.isAlive = true
             //invalidate()
